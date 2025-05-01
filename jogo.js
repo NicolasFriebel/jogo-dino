@@ -127,18 +127,19 @@ function atualizaMeteoros() {
 function desenhaMeteoros() {
     ctx.fillStyle = '#a33';
     meteoros.forEach(m => {
-        ctx.beginPath();
-        ctx.arc(m.x, m.y, m.largura / 2, 0, 2 * Math.PI);
-        ctx.fill();
+  // rastro primeiro
+  ctx.strokeStyle = 'rgba(255, 0, 0, 0.2)';
+  ctx.beginPath();
+  ctx.moveTo(m.x, m.y);
+  ctx.lineTo(m.x - m.velocidadeX * 10, m.y - m.velocidadeY * 10);
+  ctx.stroke();
 
-        // rastro visual
-        ctx.strokeStyle = 'rgba(255, 0, 0, 0.2)';
-        ctx.beginPath();
-        ctx.moveTo(m.x, m.y);
-        ctx.lineTo(m.x - m.velocidadeX * 10, m.y - m.velocidadeY * 10);
-        ctx.stroke();
-    });
-}
+  // depois o meteoro
+  ctx.fillStyle = '#a33';
+  ctx.beginPath();
+  ctx.arc(m.x, m.y, m.largura / 2, 0, 2 * Math.PI);
+  ctx.fill();
+});
 
 function desenhaCrateras() {
     ctx.fillStyle = 'rgba(255, 80, 80, 0.4)';
