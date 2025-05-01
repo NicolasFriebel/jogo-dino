@@ -1,11 +1,20 @@
 const canvas = document.getElementById('jogo');
 const ctx = canvas.getContext('2d');
 
-const dinoImg = new Image();
-dinoImg.src = 'DinoCorrendo1.png';
+// Imagens
+const dinoParadoImg = new Image();
+dinoParadoImg.src = 'DinoParado.png';
+
+const dinoOlhandoImg = new Image();
+dinoOlhandoImg.src = 'DinoOlhando.png';
+
+const dinoCorrendoImg = new Image();
+dinoCorrendoImg.src = 'DinoCorrendo1.png';
 
 const meteoroImg = new Image();
 meteoroImg.src = 'MeteoroM.png';
+
+let imagemAtual = dinoParadoImg;
 
 const margemChao = 80;
 let chaoY = 0;
@@ -13,7 +22,7 @@ let chaoY = 0;
 let dino = {
     largura: 108,
     altura: 54,
-    x: 100,
+    x: 0,
     y: 0,
     pulando: false,
     gravidade: 0
@@ -24,9 +33,16 @@ function redimensionaCanvas() {
     canvas.height = window.innerHeight;
     chaoY = canvas.height - margemChao;
     dino.y = chaoY - dino.altura;
+    dino.x = canvas.width / 2 - dino.largura / 2; // Centralizado na intro
 }
 window.addEventListener('resize', redimensionaCanvas);
 redimensionaCanvas();
+
+// Cena de introdução
+let cenaIntro = true;
+let tempoIntro = 0;
+let jogoIniciado = false;
+let meteoroIntro = null;
 
 let meteoros = [], crateras = [], decoracoes = [], pontosVisuais = [];
 let velocidadeCenario = 6, velocidadeMeteoro = 7.5;
@@ -38,7 +54,7 @@ const intervaloMinimoMeteoro = 70;
 
 document.addEventListener('keydown', (e) => {
     teclasPressionadas[e.code] = true;
-    if ((e.code === 'Space' || e.code === 'ArrowUp') && !dino.pulando) {
+    if ((e.code === 'Space' || e.code === 'ArrowUp') && !dino.pulando && jogoIniciado) {
         dino.gravidade = -18;
         dino.pulando = true;
     }
@@ -58,7 +74,7 @@ function atualizaDino() {
 }
 
 function desenhaDino() {
-    ctx.drawImage(dinoImg, dino.x, dino.y, dino.largura, dino.altura);
+    ctx.drawImage(imagemAtual, dino.x, dino.y, dino.largura, dino.altura);
 }
 
 function desenhaPontos() {
@@ -66,11 +82,9 @@ function desenhaPontos() {
     ctx.font = '36px "Press Start 2P"';
     ctx.fillStyle = '#000';
     ctx.globalAlpha = 0.25;
-
     const texto = `${score}`;
     const larguraTexto = ctx.measureText(texto).width;
     ctx.fillText(texto, (canvas.width - larguraTexto) / 2, canvas.height / 2);
-
     ctx.globalAlpha = 1.0;
     pontosVisuais.forEach(p => {
         ctx.fillStyle = '#000';
@@ -106,6 +120,23 @@ function criaDecoracao() {
 function atualizaDecoracoes() {
     decoracoes.forEach(d => d.x -= velocidadeCenario);
     decoracoes = decoracoes.filter(d => d.x + d.largura > 0);
+}
+
+function criaMeteoroIntro() {
+    meteoroIntro = {
+        x: dino.x + 120,
+        y: -60,
+        largura: 40,
+        altura: 40,
+        velocidadeY: 7
+    };
+}
+
+function desenhaMeteoroIntro() {
+    if (meteoroIntro) {
+        meteoroIntro.y += meteoroIntro.velocidadeY;
+        ctx.drawImage(meteoroImg, meteoroIntro.x, meteoroIntro.y, meteoroIntro.largura, meteoroIntro.altura);
+    }
 }
 
 function criaMeteoro() {
@@ -240,19 +271,44 @@ function colisao() {
 
 function loop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (cenaIntro) {
+        tempoIntro++;
+
+        if (tempoIntro < 90) {
+            imagemAtual = dinoParadoImg;
+        } else if (tempoIntro < 180) {
+            imagemAtual = dinoOlhandoImg;
+        } else if (tempoIntro === 180) {
+            criarMeteoroIntro();
+        } else if (tempoIntro >= 260) {
+            cenaIntro = false;
+            jogoIniciado = true;
+            imagemAtual = dinoCorrendoImg;
+        }
+
+        desenhaDino();
+        desenhaMeteoroIntro();
+        requestAnimationFrame(loop);
+        return;
+    }
+
     desenhaDecoracoes('tras');
     desenhaDino();
     desenhaDecoracoes('frente');
     desenhaPontos();
     atualizaDino();
     verificaPontuacoes();
+
     if (frame >= tempoProximoMeteoro) criaMeteoro();
     if (frame >= tempoProximaDecoracao) criaDecoracao();
+
     desenhaMeteoros();
     atualizaMeteoros();
     desenhaCrateras();
     atualizaCrateras();
     atualizaDecoracoes();
+
     if (colisao()) {
         alert(`Extinção! Pontuação: ${score}`);
         document.location.reload();
@@ -264,6 +320,23 @@ function loop() {
             if (intervaloBaseMeteoro > intervaloMinimoMeteoro) intervaloBaseMeteoro -= 5;
         }
         requestAnimationFrame(loop);
+    }
+}
+
+function criarMeteoroIntro() {
+    meteoroIntro = {
+        x: dino.x + 120,
+        y: -60,
+        largura: 40,
+        altura: 40,
+        velocidadeY: 7
+    };
+}
+
+function desenhaMeteoroIntro() {
+    if (meteoroIntro) {
+        meteoroIntro.y += meteoroIntro.velocidadeY;
+        ctx.drawImage(meteoroImg, meteoroIntro.x, meteoroIntro.y, meteoroIntro.largura, meteoroIntro.altura);
     }
 }
 
