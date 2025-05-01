@@ -152,7 +152,8 @@ function atualizaMeteoros(){
         m.x += m.velocidadeX;
         m.y += m.velocidadeY;
 
-        if (m.tipo === 'vertical' && m.y >= canvas.height - 50) {
+        // NOVO: qualquer meteoro que atinge o chão cria cratera
+        if (m.y >= canvas.height - 50) {
             crateras.push({
                 x: m.x,
                 y: canvas.height - 12,
@@ -160,8 +161,6 @@ function atualizaMeteoros(){
                 altura: 12,
                 pontuado: false
             });
-            meteoros.splice(i, 1);
-        } else if (m.tipo === 'razante' && (m.x < -100 || m.x > canvas.width + 100)) {
             meteoros.splice(i, 1);
         }
     }
