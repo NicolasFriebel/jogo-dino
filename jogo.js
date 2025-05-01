@@ -1,4 +1,4 @@
-// Versão 1.2 - Dificuldade aumentada: obstáculos duplos, largura variável, aumento de velocidade mais rápido
+// Versão 1.3 - Obstáculos agora são meteoros caindo em diagonal em direção ao dinossauro
 
 const canvas = document.getElementById('jogo');
 const ctx = canvas.getContext('2d');
@@ -12,14 +12,14 @@ let dino = {
     gravidade: 0
 };
 
-let obstaculos = [];
-let velocidadeJogo = 8;
+let meteoros = [];
+let velocidadeJogo = 2; // usado na queda dos meteoros
 let frame = 0;
 let score = 0;
-let tempoProximoObstaculo = 0;
+let tempoProximoMeteoro = 0;
 
 document.addEventListener('keydown', function(event){
-    if(event.code === 'Space' && !dino.pulando){
+    if((event.code === 'Space' || event.code === 'ArrowUp') && !dino.pulando){
         dino.gravidade = -10;
         dino.pulando = true;
     }
@@ -40,46 +40,46 @@ function atualizaDino(){
     }
 }
 
-function criaObstaculo(){
-    const numObstaculos = Math.random() < 0.3 ? 2 : 1;
+function criaMeteoro(){
+    const origemX = Math.floor(Math.random() * canvas.width);
+    meteoros.push({
+        x: origemX,
+        y: -20,
+        largura: 20,
+        altura: 20,
+        velocidadeX: -1.5 + Math.random() * 3, // entre -1.5 e +1.5
+        velocidadeY: velocidadeJogo + Math.random() * 2 // variação na queda
+    });
 
-    for (let i = 0; i < numObstaculos; i++) {
-        const largura = Math.floor(Math.random() * 20 + 10);
-        const offset = i * (largura + 20);
-
-        obstaculos.push({
-            x: canvas.width + offset,
-            y: 120,
-            largura: largura,
-            altura: 20
-        });
-    }
-
-    const minEspaco = Math.max(40, 100 - velocidadeJogo * 4);
-    const maxEspaco = 200;
-    tempoProximoObstaculo = frame + Math.floor(Math.random() * (maxEspaco - minEspaco) + minEspaco);
+    const minEspaco = 40;
+    const maxEspaco = 100;
+    tempoProximoMeteoro = frame + Math.floor(Math.random() * (maxEspaco - minEspaco) + minEspaco);
 }
 
-function desenhaObstaculos(){
-    ctx.fillStyle = '#888';
-    obstaculos.forEach(obs => {
-        ctx.fillRect(obs.x, obs.y, obs.largura, obs.altura);
+function desenhaMeteoros(){
+    ctx.fillStyle = '#a33';
+    meteoros.forEach(m => {
+        ctx.beginPath();
+        ctx.arc(m.x, m.y, m.largura / 2, 0, 2 * Math.PI);
+        ctx.fill();
     });
 }
 
-function atualizaObstaculos(){
-    obstaculos.forEach(obs => {
-        obs.x -= velocidadeJogo;
+function atualizaMeteoros(){
+    meteoros.forEach(m => {
+        m.x += m.velocidadeX;
+        m.y += m.velocidadeY;
     });
-    obstaculos = obstaculos.filter(obs => obs.x + obs.largura > 0);
+
+    meteoros = meteoros.filter(m => m.y < canvas.height + 20); // remove meteoros fora da tela
 }
 
 function colisao(){
-    return obstaculos.some(obs => {
-        return dino.x < obs.x + obs.largura &&
-               dino.x + dino.largura > obs.x &&
-               dino.y < obs.y + obs.altura &&
-               dino.y + dino.altura > obs.y;
+    return meteoros.some(m => {
+        return dino.x < m.x + m.largura &&
+               dino.x + dino.largura > m.x &&
+               dino.y < m.y + m.altura &&
+               dino.y + dino.altura > m.y;
     });
 }
 
@@ -89,27 +89,28 @@ function loop(){
     desenhaDino();
     atualizaDino();
 
-    if (frame === tempoProximoObstaculo) {
-        criaObstaculo();
+    if (frame === tempoProximoMeteoro) {
+        criaMeteoro();
     }
 
-    desenhaObstaculos();
-    atualizaObstaculos();
+    desenhaMeteoros();
+    atualizaMeteoros();
 
     if(colisao()){
-        alert(`Fim de jogo! Pontuação: ${score}`);
+        alert(`Extinção! Pontuação: ${score}`);
         document.location.reload();
     } else {
         score++;
         frame++;
 
         if (frame % 400 === 0) {
-            velocidadeJogo += 0.5;
+            velocidadeJogo += 0.2;
         }
 
         requestAnimationFrame(loop);
     }
 }
 
-criaObstaculo();
+criaMeteoro();
 loop();
+
