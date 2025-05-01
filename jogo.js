@@ -1,4 +1,4 @@
-// Versão 1.8 - Crateras letais surgem após queda dos meteoros
+// Versão 1.9 - Meteoros caem apenas no setor direito (zona de ameaça real)
 
 const canvas = document.getElementById('jogo');
 const ctx = canvas.getContext('2d');
@@ -60,7 +60,8 @@ function atualizaDino(){
 }
 
 function criaMeteoro(){
-    const origemX = Math.floor(Math.random() * canvas.width);
+    // nova lógica: nasce entre 60% e 100% da tela
+    const origemX = Math.floor(canvas.width * 0.6 + Math.random() * canvas.width * 0.4);
     const tamanhos = [20, 40, 60];
     const tamanho = tamanhos[Math.floor(Math.random() * tamanhos.length)];
     const variacao = Math.random() * 1.5;
@@ -96,13 +97,12 @@ function atualizaMeteoros(){
         m.y += m.velocidadeY;
 
         if (m.y >= canvas.height - 50) {
-            // Criar cratera
             crateras.push({
                 x: m.x,
                 y: canvas.height - 50 + m.altura / 2,
                 raio: m.raioCratera
             });
-            meteoros.splice(i, 1); // Remove meteoro
+            meteoros.splice(i, 1);
         }
     }
 }
@@ -133,79 +133,4 @@ function criaDecoracao(){
         tipo: tipo
     });
 
-    tempoProximaDecoracao = frame + Math.floor(Math.random() * 20 + 10);
-}
-
-function desenhaDecoracoes(){
-    decoracoes.forEach(d => {
-        ctx.fillStyle = d.tipo === 'grama' ? '#4caf50' : '#888';
-        ctx.fillRect(d.x, d.y, d.largura, d.altura);
-    });
-}
-
-function atualizaDecoracoes(){
-    decoracoes.forEach(d => {
-        d.x -= velocidadeCenario;
-    });
-
-    decoracoes = decoracoes.filter(d => d.x + d.largura > 0);
-}
-
-function colisao(){
-    const colideComMeteoro = meteoros.some(m => {
-        return dino.x < m.x + m.largura &&
-               dino.x + dino.largura > m.x &&
-               dino.y < m.y + m.altura &&
-               dino.y + dino.altura > m.y;
-    });
-
-    const colideComCratera = crateras.some(c => {
-        const distX = dino.x + dino.largura / 2 - c.x;
-        const distY = dino.y + dino.altura / 2 - c.y;
-        const distancia = Math.sqrt(distX * distX + distY * distY);
-        return distancia < c.raio;
-    });
-
-    return colideComMeteoro || colideComCratera;
-}
-
-function loop(){
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    desenhaDino();
-    atualizaDino();
-
-    if (frame === tempoProximoMeteoro) {
-        criaMeteoro();
-    }
-
-    if (frame === tempoProximaDecoracao) {
-        criaDecoracao();
-    }
-
-    desenhaMeteoros();
-    atualizaMeteoros();
-
-    desenhaCrateras();
-    atualizaCrateras();
-
-    desenhaDecoracoes();
-    atualizaDecoracoes();
-
-    if(colisao()){
-        alert(`Extinção! Pontuação: ${score}`);
-        document.location.reload();
-    } else {
-        score++;
-        frame++;
-
-        if (frame % 400 === 0) {
-            velocidadeCenario += 0.3;
-        }
-
-        requestAnimationFrame(loop);
-    }
-}
-
-criaMeteoro();
-loop();
+    tempoProximaDecor
