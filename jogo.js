@@ -1,4 +1,4 @@
-// Versão 2.2 - Hitbox refinada, raptor mais veloz, frequência inicial reduzida
+// Versão 2.3 - Crateras fixas no chão, hitbox justa por borda, menos decoração
 
 const canvas = document.getElementById('jogo');
 const ctx = canvas.getContext('2d');
@@ -15,14 +15,14 @@ let dino = {
 let meteoros = [];
 let crateras = [];
 let decoracoes = [];
-let velocidadeCenario = 4; // mais veloz
-let velocidadeMeteoro = 3; // queda mais rápida
+let velocidadeCenario = 4;
+let velocidadeMeteoro = 3;
 let frame = 0;
 let score = 0;
 let tempoProximoMeteoro = 60;
 let tempoProximaDecoracao = 0;
 let teclasPressionadas = {};
-let intervaloBaseMeteoro = 140; // menos frequente no início
+let intervaloBaseMeteoro = 140;
 let variacaoMeteoro = 30;
 
 document.addEventListener('keydown', (e) => {
@@ -101,7 +101,7 @@ function atualizaMeteoros(){
         if (m.y >= canvas.height - 50) {
             crateras.push({
                 x: m.x,
-                y: canvas.height - 50 + m.altura / 2,
+                y: canvas.height - 50, // fixa no chão
                 raio: m.raioCratera
             });
             meteoros.splice(i, 1);
@@ -126,6 +126,8 @@ function atualizaCrateras(){
 }
 
 function criaDecoracao(){
+    if (frame % 4 !== 0) return; // reduz para 1/4 da frequência anterior
+
     const tipo = Math.random() < 0.5 ? 'grama' : 'pedra';
     decoracoes.push({
         x: canvas.width,
@@ -161,10 +163,16 @@ function colisao(){
     });
 
     const colideComCratera = crateras.some(c => {
-        const distX = (dino.x + dino.largura / 2) - c.x;
-        const distY = (dino.y + dino.altura) - c.y; // usa a base do dino
-        const distancia = Math.sqrt(distX * distX + distY * distY);
-        return distancia < c.raio * 0.85; // hitbox refinada
+        const crateraTopo = canvas.height - 50 - 10; // 10px acima do chão
+        const crateraBase = canvas.height - 50 + 10;
+        const dinoBase = dino.y + dino.altura;
+
+        return (
+            dinoBase >= crateraTopo &&
+            dinoBase <= crateraBase &&
+            dino.x + dino.largura > c.x - c.raio &&
+            dino.x < c.x + c.raio
+        );
     });
 
     return colideComMeteoro || colideComCratera;
