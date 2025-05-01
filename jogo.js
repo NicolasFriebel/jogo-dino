@@ -4,13 +4,11 @@ const ctx = canvas.getContext('2d');
 let dino = { x: 100, y: 400, largura: 40, altura: 40, pulando: false, gravidade: 0 };
 let meteoros = [], crateras = [], decoracoes = [], pontosVisuais = [];
 
-let velocidadeCenario = 4;
-let velocidadeMeteoro = 5;
+let velocidadeCenario = 4, velocidadeMeteoro = 5;
 let frame = 0, score = 0;
 let tempoProximoMeteoro = 60, tempoProximaDecoracao = 0;
 let teclasPressionadas = {};
-let intervaloBaseMeteoro = 100;
-let variacaoMeteoro = 50;
+let intervaloBaseMeteoro = 100, variacaoMeteoro = 50;
 const intervaloMinimoMeteoro = 70;
 
 ctx.font = '18px Arial';
@@ -125,21 +123,21 @@ function atualizaMeteoros() {
 }
 
 function desenhaMeteoros() {
-    ctx.fillStyle = '#a33';
     meteoros.forEach(m => {
-  // rastro primeiro
-  ctx.strokeStyle = 'rgba(255, 0, 0, 0.2)';
-  ctx.beginPath();
-  ctx.moveTo(m.x, m.y);
-  ctx.lineTo(m.x - m.velocidadeX * 10, m.y - m.velocidadeY * 10);
-  ctx.stroke();
+        // rastro visual
+        ctx.strokeStyle = 'rgba(255, 0, 0, 0.2)';
+        ctx.beginPath();
+        ctx.moveTo(m.x, m.y);
+        ctx.lineTo(m.x - m.velocidadeX * 10, m.y - m.velocidadeY * 10);
+        ctx.stroke();
 
-  // depois o meteoro
-  ctx.fillStyle = '#a33';
-  ctx.beginPath();
-  ctx.arc(m.x, m.y, m.largura / 2, 0, 2 * Math.PI);
-  ctx.fill();
-});
+        // meteoro visível
+        ctx.fillStyle = '#a33';
+        ctx.beginPath();
+        ctx.arc(m.x, m.y, m.largura / 2, 0, 2 * Math.PI);
+        ctx.fill();
+    });
+}
 
 function desenhaCrateras() {
     ctx.fillStyle = 'rgba(255, 80, 80, 0.4)';
