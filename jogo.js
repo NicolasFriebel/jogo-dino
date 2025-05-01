@@ -133,4 +133,79 @@ function criaDecoracao(){
         tipo: tipo
     });
 
-    tempoProximaDecor
+    tempoProximaDecoracao = frame + Math.floor(Math.random() * 20 + 10);
+}
+
+function desenhaDecoracoes(){
+    decoracoes.forEach(d => {
+        ctx.fillStyle = d.tipo === 'grama' ? '#4caf50' : '#888';
+        ctx.fillRect(d.x, d.y, d.largura, d.altura);
+    });
+}
+
+function atualizaDecoracoes(){
+    decoracoes.forEach(d => {
+        d.x -= velocidadeCenario;
+    });
+
+    decoracoes = decoracoes.filter(d => d.x + d.largura > 0);
+}
+
+function colisao(){
+    const colideComMeteoro = meteoros.some(m => {
+        return dino.x < m.x + m.largura &&
+               dino.x + dino.largura > m.x &&
+               dino.y < m.y + m.altura &&
+               dino.y + dino.altura > m.y;
+    });
+
+    const colideComCratera = crateras.some(c => {
+        const distX = dino.x + dino.largura / 2 - c.x;
+        const distY = dino.y + dino.altura / 2 - c.y;
+        const distancia = Math.sqrt(distX * distX + distY * distY);
+        return distancia < c.raio;
+    });
+
+    return colideComMeteoro || colideComCratera;
+}
+
+function loop(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    desenhaDino();
+    atualizaDino();
+
+    if (frame === tempoProximoMeteoro) {
+        criaMeteoro();
+    }
+
+    if (frame === tempoProximaDecoracao) {
+        criaDecoracao();
+    }
+
+    desenhaMeteoros();
+    atualizaMeteoros();
+
+    desenhaCrateras();
+    atualizaCrateras();
+
+    desenhaDecoracoes();
+    atualizaDecoracoes();
+
+    if(colisao()){
+        alert(`Extinção! Pontuação: ${score}`);
+        document.location.reload();
+    } else {
+        score++;
+        frame++;
+
+        if (frame % 400 === 0) {
+            velocidadeCenario += 0.3;
+        }
+
+        requestAnimationFrame(loop);
+    }
+}
+
+criaMeteoro();
+loop();
