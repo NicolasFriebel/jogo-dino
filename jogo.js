@@ -13,7 +13,7 @@ let dino = {
 };
 
 let obstaculos = [];
-let velocidadeJogo = 8; // velocidade inicial mais alta
+let velocidadeJogo = 8;
 let frame = 0;
 let score = 0;
 let tempoProximoObstaculo = 0;
@@ -41,12 +41,11 @@ function atualizaDino(){
 }
 
 function criaObstaculo(){
-    // Gera 1 ou 2 obstáculos com largura aleatória
-    const numObstaculos = Math.random() < 0.3 ? 2 : 1; // 30% de chance de vir obstáculo duplo
+    const numObstaculos = Math.random() < 0.3 ? 2 : 1;
 
     for (let i = 0; i < numObstaculos; i++) {
-        const largura = Math.floor(Math.random() * 20 + 10); // entre 10 e 30 px
-        const offset = i * (largura + 20); // separa os obstáculos duplos
+        const largura = Math.floor(Math.random() * 20 + 10);
+        const offset = i * (largura + 20);
 
         obstaculos.push({
             x: canvas.width + offset,
@@ -56,8 +55,7 @@ function criaObstaculo(){
         });
     }
 
-    // Reduz espaçamento mínimo entre obstáculos conforme a velocidade aumenta
-    const minEspaco = Math.max(40, 100 - velocidadeJogo * 4); // mínimo reduzido
+    const minEspaco = Math.max(40, 100 - velocidadeJogo * 4);
     const maxEspaco = 200;
     tempoProximoObstaculo = frame + Math.floor(Math.random() * (maxEspaco - minEspaco) + minEspaco);
 }
@@ -81,5 +79,37 @@ function colisao(){
         return dino.x < obs.x + obs.largura &&
                dino.x + dino.largura > obs.x &&
                dino.y < obs.y + obs.altura &&
+               dino.y + dino.altura > obs.y;
+    });
+}
 
+function loop(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    desenhaDino();
+    atualizaDino();
+
+    if (frame === tempoProximoObstaculo) {
+        criaObstaculo();
+    }
+
+    desenhaObstaculos();
+    atualizaObstaculos();
+
+    if(colisao()){
+        alert(`Fim de jogo! Pontuação: ${score}`);
+        document.location.reload();
+    } else {
+        score++;
+        frame++;
+
+        if (frame % 400 === 0) {
+            velocidadeJogo += 0.5;
+        }
+
+        requestAnimationFrame(loop);
+    }
+}
+
+criaObstaculo();
+loop();
