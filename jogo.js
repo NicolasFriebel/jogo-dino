@@ -127,14 +127,14 @@ function criaMeteoro() {
         else origemX = canvas.width * 0.7 + Math.random() * canvas.width * 0.35;
         const tamanhos = [20, 20, 20, 40, 40, 60];
         const tamanho = tamanhos[Math.floor(Math.random() * tamanhos.length)];
-        const anguloX = (Math.random() - 0.5) * 2;
+        const anguloX = (Math.random() - 0.5) * 4; // corrigido aqui
         meteoros.push({
             tipo: 'vertical',
             x: origemX,
             y: -tamanho,
             largura: tamanho,
             altura: tamanho,
-            velocidadeX: anguloX - velocidadeCenario * 0.2,
+            velocidadeX: anguloX, // corrigido aqui
             velocidadeY: velocidadeMeteoro + Math.random() * 1.5,
             pontuado: false
         });
