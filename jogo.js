@@ -1,4 +1,4 @@
-// Versão 2.4 - Crateras realistas, letais e bem posicionadas
+// Versão 2.5 - Crateras finalmente posicionadas corretamente
 
 const canvas = document.getElementById('jogo');
 const ctx = canvas.getContext('2d');
@@ -101,7 +101,7 @@ function atualizaMeteoros(){
         if (m.y >= canvas.height - 50) {
             crateras.push({
                 x: m.x,
-                y: canvas.height - 50 - m.raioCratera, // centro alinhado para base tocar o chão
+                y: canvas.height - 50 + m.raioCratera, // ✅ centro correto
                 raio: m.raioCratera
             });
             meteoros.splice(i, 1);
@@ -126,7 +126,7 @@ function atualizaCrateras(){
 }
 
 function criaDecoracao(){
-    if (frame % 4 !== 0) return; // 1/4 da frequência anterior
+    if (frame % 4 !== 0) return;
 
     const tipo = Math.random() < 0.5 ? 'grama' : 'pedra';
     decoracoes.push({
