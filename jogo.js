@@ -97,26 +97,51 @@ function atualizaDecoracoes(){
 }
 
 function criaMeteoro() {
-    const angulo = (210 + Math.random() * 120) * (Math.PI / 180); // entre 210° e 330°
-    const raio = Math.max(canvas.width, canvas.height) * 1.2;
-    const origemX = canvas.width / 2 + Math.cos(angulo) * raio;
-    const origemY = canvas.height / 2 + Math.sin(angulo) * raio;
+    const tipoRazante = Math.random() < 0.15;
 
-    const tamanho = [20, 20, 20, 40, 40, 60][Math.floor(Math.random() * 6)];
-    const velocidade = velocidadeMeteoro + Math.random() * 1.5;
-    const velocidadeX = Math.cos(angulo) * velocidade;
-    const velocidadeY = Math.sin(angulo) * velocidade;
+    if (tipoRazante) {
+        const vindoDaEsquerda = Math.random() < 0.5;
+        const origemX = vindoDaEsquerda ? -60 : canvas.width + 60;
+        const origemY = canvas.height - 140 + Math.random() * 40;
+        const velX = vindoDaEsquerda ? 6 + Math.random() * 2 : -6 - Math.random() * 2;
+        const velY = 0.8 + Math.random();
 
-    meteoros.push({
-        tipo: 'angular',
-        x: origemX,
-        y: origemY,
-        largura: tamanho,
-        altura: tamanho,
-        velocidadeX,
-        velocidadeY,
-        pontuado: false
-    });
+        meteoros.push({
+            tipo: 'razante',
+            x: origemX,
+            y: origemY,
+            largura: 30,
+            altura: 30,
+            velocidadeX: velX,
+            velocidadeY: velY,
+            pontuado: false
+        });
+    } else {
+        let origemX;
+        let zona = Math.random();
+        if (zona < 0.2) {
+            origemX = Math.random() * canvas.width * 0.3;
+        } else if (zona < 0.5) {
+            origemX = canvas.width * 0.35 + Math.random() * canvas.width * 0.3;
+        } else {
+            origemX = canvas.width * 0.7 + Math.random() * canvas.width * 0.35;
+        }
+
+        const pesos = [20, 20, 20, 20, 40, 40, 60];
+        const tamanho = pesos[Math.floor(Math.random() * pesos.length)];
+        const anguloX = (Math.random() - 0.5) * 2;
+
+        meteoros.push({
+            tipo: 'vertical',
+            x: origemX,
+            y: -tamanho,
+            largura: tamanho,
+            altura: tamanho,
+            velocidadeX: anguloX - velocidadeCenario * 0.2,
+            velocidadeY: velocidadeMeteoro + Math.random() * 1.5,
+            pontuado: false
+        });
+    }
 
     tempoProximoMeteoro = frame + intervaloBaseMeteoro + Math.floor(Math.random() * variacaoMeteoro);
 }
@@ -127,7 +152,7 @@ function atualizaMeteoros(){
         m.x += m.velocidadeX;
         m.y += m.velocidadeY;
 
-        if (m.y >= canvas.height - 50) {
+        if (m.tipo === 'vertical' && m.y >= canvas.height - 50) {
             crateras.push({
                 x: m.x,
                 y: canvas.height - 12,
@@ -135,6 +160,8 @@ function atualizaMeteoros(){
                 altura: 12,
                 pontuado: false
             });
+            meteoros.splice(i, 1);
+        } else if (m.tipo === 'razante' && (m.x < -100 || m.x > canvas.width + 100)) {
             meteoros.splice(i, 1);
         }
     }
