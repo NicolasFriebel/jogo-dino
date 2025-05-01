@@ -1,4 +1,4 @@
-// Versão 2.1 - Frequência estável, crateras não se sobrepõem, dificuldade justa
+// Versão 2.2 - Hitbox refinada, raptor mais veloz, frequência inicial reduzida
 
 const canvas = document.getElementById('jogo');
 const ctx = canvas.getContext('2d');
@@ -15,15 +15,15 @@ let dino = {
 let meteoros = [];
 let crateras = [];
 let decoracoes = [];
-let velocidadeCenario = 2;
-let velocidadeMeteoro = 2;
+let velocidadeCenario = 4; // mais veloz
+let velocidadeMeteoro = 3; // queda mais rápida
 let frame = 0;
 let score = 0;
 let tempoProximoMeteoro = 60;
 let tempoProximaDecoracao = 0;
 let teclasPressionadas = {};
-let intervaloBaseMeteoro = 100; // intervalo fixo base (frames)
-let variacaoMeteoro = 30; // pequena variação
+let intervaloBaseMeteoro = 140; // menos frequente no início
+let variacaoMeteoro = 30;
 
 document.addEventListener('keydown', (e) => {
     teclasPressionadas[e.code] = true;
@@ -56,7 +56,7 @@ function atualizaDino(){
 }
 
 function existeCrateraProxima(x, raio) {
-    return crateras.some(c => Math.abs(c.x - x) < c.raio + raio + 20); // 20px de margem mínima
+    return crateras.some(c => Math.abs(c.x - x) < c.raio + raio + 20);
 }
 
 function criaMeteoro(){
@@ -65,9 +65,8 @@ function criaMeteoro(){
     const tamanho = pesos[Math.floor(Math.random() * pesos.length)];
     const raioCratera = tamanho * 1.5;
 
-    // evitar crateras sobrepostas
     if (existeCrateraProxima(origemX, raioCratera)) {
-        tempoProximoMeteoro += 10; // adia o spawn se não houver espaço
+        tempoProximoMeteoro += 10;
         return;
     }
 
@@ -162,10 +161,10 @@ function colisao(){
     });
 
     const colideComCratera = crateras.some(c => {
-        const distX = dino.x + dino.largura / 2 - c.x;
-        const distY = dino.y + dino.altura / 2 - c.y;
+        const distX = (dino.x + dino.largura / 2) - c.x;
+        const distY = (dino.y + dino.altura) - c.y; // usa a base do dino
         const distancia = Math.sqrt(distX * distX + distY * distY);
-        return distancia < c.raio;
+        return distancia < c.raio * 0.85; // hitbox refinada
     });
 
     return colideComMeteoro || colideComCratera;
@@ -177,13 +176,8 @@ function loop(){
     desenhaDino();
     atualizaDino();
 
-    if (frame >= tempoProximoMeteoro) {
-        criaMeteoro();
-    }
-
-    if (frame >= tempoProximaDecoracao) {
-        criaDecoracao();
-    }
+    if (frame >= tempoProximoMeteoro) criaMeteoro();
+    if (frame >= tempoProximaDecoracao) criaDecoracao();
 
     desenhaMeteoros();
     atualizaMeteoros();
@@ -203,7 +197,7 @@ function loop(){
 
         if (frame % 400 === 0) {
             velocidadeCenario += 0.2;
-            velocidadeMeteoro += 0.3; // aumenta apenas a velocidade dos meteoros
+            velocidadeMeteoro += 0.3;
         }
 
         requestAnimationFrame(loop);
