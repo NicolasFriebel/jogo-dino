@@ -52,24 +52,68 @@ function atualizaDino(){
         dino.pulando = false;
     }
 }
+
+function desenhaDino(){
+    ctx.fillStyle = '#555';
+    ctx.fillRect(dino.x, dino.y, dino.largura, dino.altura);
+}
+
+function desenhaPontos(){
+    ctx.fillStyle = '#000';
+    ctx.fillText(`Score: ${score}`, 10, 20);
+    pontosVisuais.forEach(p => {
+        ctx.fillStyle = '#2e7d32';
+        ctx.fillText(p.texto, p.x, p.y);
+    });
+}
+
+function desenhaDecoracoes(profundidade){
+    decoracoes.forEach(d => {
+        if (d.profundidade === profundidade) {
+            ctx.fillStyle = d.tipo === 'grama' ? '#4caf50' : '#888';
+            ctx.fillRect(d.x, d.y, d.largura, d.altura);
+        }
+    });
+}
+
+function criaDecoracao(){
+    if (frame % 4 !== 0) return;
+    const tipo = Math.random() < 0.5 ? 'grama' : 'pedra';
+    const profundidade = Math.random() < 0.5 ? 'tras' : 'frente';
+    decoracoes.push({
+        x: canvas.width,
+        y: canvas.height - 50 + 30,
+        largura: 10,
+        altura: 10,
+        tipo,
+        profundidade
+    });
+    tempoProximaDecoracao = frame + Math.floor(Math.random() * 20 + 10);
+}
+
+function atualizaDecoracoes(){
+    decoracoes.forEach(d => d.x -= velocidadeCenario);
+    decoracoes = decoracoes.filter(d => d.x + d.largura > 0);
+}
+
 function criaMeteoro() {
-    const tipoRazante = Math.random() < 0.15; // 15% de chance de ser razante
+    const tipoRazante = Math.random() < 0.15;
 
     if (tipoRazante) {
         const vindoDaEsquerda = Math.random() < 0.5;
         const origemX = vindoDaEsquerda ? -60 : canvas.width + 60;
-        const destinoY = canvas.height - 100 + Math.random() * 40; // entre -100 e -60 do chão
-        const velocidadeX = vindoDaEsquerda ? 6 + Math.random() * 2 : -6 - Math.random() * 2;
-        const velocidadeY = 0.8 + Math.random() * 1.2;
+        const origemY = canvas.height - 140 + Math.random() * 40;
+        const velX = vindoDaEsquerda ? 6 + Math.random() * 2 : -6 - Math.random() * 2;
+        const velY = 0.8 + Math.random();
 
         meteoros.push({
             tipo: 'razante',
             x: origemX,
-            y: destinoY,
+            y: origemY,
             largura: 30,
             altura: 30,
-            velocidadeX: velocidadeX,
-            velocidadeY: velocidadeY,
+            velocidadeX: velX,
+            velocidadeY: velY,
             pontuado: false
         });
     } else {
@@ -118,7 +162,7 @@ function atualizaMeteoros(){
             });
             meteoros.splice(i, 1);
         } else if (m.tipo === 'razante' && (m.x < -100 || m.x > canvas.width + 100)) {
-            meteoros.splice(i, 1); // remove razantes que saem da tela
+            meteoros.splice(i, 1);
         }
     }
 }
@@ -131,6 +175,7 @@ function desenhaMeteoros(){
         ctx.fill();
     });
 }
+
 function desenhaCrateras(){
     ctx.fillStyle = 'rgba(255, 80, 80, 0.4)';
     crateras.forEach(c => {
@@ -147,17 +192,15 @@ function verificaPontuacoes(){
     if (frame % 30 === 0) score += 2;
 
     meteoros.forEach(m => {
-        const dinoCentroX = dino.x + dino.largura / 2;
-        const distX = Math.abs(dinoCentroX - m.x);
-        const nearMissZona = m.largura * 1.5;
+        const distX = Math.abs((dino.x + dino.largura / 2) - m.x);
+        const nearMissRange = m.largura * 2;
 
-        const passouPorBaixo = !dino.pulando &&
+        const nearMiss = !dino.pulando &&
             m.y + m.altura >= dino.y &&
-            m.y < dino.y + dino.altura &&
-            distX < nearMissZona &&
+            distX < nearMissRange &&
             !m.pontuado;
 
-        if (passouPorBaixo) {
+        if (nearMiss) {
             score += 5;
             m.pontuado = true;
             pontosVisuais.push({ texto: '+5', x: dino.x, y: dino.y, ttl: 40 });
@@ -211,44 +254,6 @@ function colisao(){
     return colideComMeteoro || colideComCratera;
 }
 
-function desenhaPontos(){
-    ctx.fillStyle = '#000';
-    ctx.fillText(`Score: ${score}`, 10, 20);
-    pontosVisuais.forEach(p => {
-        ctx.fillStyle = '#2e7d32';
-        ctx.fillText(p.texto, p.x, p.y);
-    });
-}
-
-function desenhaDecoracoes(profundidade){
-    decoracoes.forEach(d => {
-        if (d.profundidade === profundidade) {
-            ctx.fillStyle = d.tipo === 'grama' ? '#4caf50' : '#888';
-            ctx.fillRect(d.x, d.y, d.largura, d.altura);
-        }
-    });
-}
-
-function criaDecoracao(){
-    if (frame % 4 !== 0) return;
-    const tipo = Math.random() < 0.5 ? 'grama' : 'pedra';
-    const profundidade = Math.random() < 0.5 ? 'tras' : 'frente';
-    decoracoes.push({
-        x: canvas.width,
-        y: canvas.height - 50 + 30,
-        largura: 10,
-        altura: 10,
-        tipo,
-        profundidade
-    });
-    tempoProximaDecoracao = frame + Math.floor(Math.random() * 20 + 10);
-}
-
-function atualizaDecoracoes(){
-    decoracoes.forEach(d => d.x -= velocidadeCenario);
-    decoracoes = decoracoes.filter(d => d.x + d.largura > 0);
-}
-
 function loop(){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -287,4 +292,3 @@ function loop(){
 
 tempoProximoMeteoro = 60;
 loop();
-
