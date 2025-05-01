@@ -1,4 +1,4 @@
-// Versão 1.5 - Scroll lateral do cenário + meteoros sincronizados + decoração no chão
+// Versão 1.6 - Meteoros sempre caem mais rápido que o deslocamento lateral
 
 const canvas = document.getElementById('jogo');
 const ctx = canvas.getContext('2d');
@@ -9,8 +9,7 @@ let dino = {
     largura: 40,
     altura: 40,
     pulando: false,
-    gravidade: 0,
-    velocidadeX: 0
+    gravidade: 0
 };
 
 let meteoros = [];
@@ -61,13 +60,14 @@ function atualizaDino(){
 
 function criaMeteoro(){
     const origemX = Math.floor(Math.random() * canvas.width);
+    const variacao = Math.random() * 1.5; // pequena aleatoriedade
     meteoros.push({
         x: origemX,
         y: -20,
         largura: 20,
         altura: 20,
-        velocidadeX: -1.5 + Math.random() * 3,
-        velocidadeY: 2 + Math.random() * 2
+        velocidadeX: -1.5 + Math.random() * 3 - velocidadeCenario,
+        velocidadeY: velocidadeCenario * 1.2 + variacao // sempre maior que o scroll
     });
 
     const minEspaco = 40;
@@ -86,7 +86,7 @@ function desenhaMeteoros(){
 
 function atualizaMeteoros(){
     meteoros.forEach(m => {
-        m.x += m.velocidadeX - velocidadeCenario;
+        m.x += m.velocidadeX;
         m.y += m.velocidadeY;
     });
 
@@ -158,7 +158,7 @@ function loop(){
         frame++;
 
         if (frame % 400 === 0) {
-            velocidadeCenario += 0.2;
+            velocidadeCenario += 0.3;
         }
 
         requestAnimationFrame(loop);
