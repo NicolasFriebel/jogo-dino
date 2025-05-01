@@ -1,4 +1,4 @@
-// Versão 2.9 corrigida - Meteoros mais frequentes com o tempo, evitando glitch do canto direito + atualizaDino restaurado
+// Versão 2.9 FINAL - Corrigido e testado: tudo funcionando
 
 const canvas = document.getElementById('jogo');
 const ctx = canvas.getContext('2d');
@@ -31,8 +31,6 @@ const intervaloMinimoMeteoro = 70;
 ctx.font = '18px Arial';
 ctx.fillStyle = '#333';
 
-// EVENT LISTENERS
-
 document.addEventListener('keydown', (e) => {
     teclasPressionadas[e.code] = true;
     if ((e.code === 'Space' || e.code === 'ArrowUp') && !dino.pulando) {
@@ -45,7 +43,6 @@ document.addEventListener('keyup', (e) => {
     teclasPressionadas[e.code] = false;
 });
 
-// NOVA FUNÇÃO RESTAURADA
 function atualizaDino(){
     if (teclasPressionadas['ArrowLeft']) dino.x -= 5;
     if (teclasPressionadas['ArrowRight']) dino.x += 5;
@@ -58,7 +55,168 @@ function atualizaDino(){
     }
 }
 
-// (restante do código continua como na Versão 2.8 com os ajustes de frequência e origem dos meteoros)
+function desenhaDino(){
+    ctx.fillStyle = '#555';
+    ctx.fillRect(dino.x, dino.y, dino.largura, dino.altura);
+}
+
+function desenhaPontos(){
+    ctx.fillStyle = '#000';
+    ctx.fillText(`Score: ${score}`, 10, 20);
+    pontosVisuais.forEach(p => {
+        ctx.fillStyle = '#2e7d32';
+        ctx.fillText(p.texto, p.x, p.y);
+    });
+}
+
+function desenhaDecoracoes(profundidade){
+    decoracoes.forEach(d => {
+        if (d.profundidade === profundidade) {
+            ctx.fillStyle = d.tipo === 'grama' ? '#4caf50' : '#888';
+            ctx.fillRect(d.x, d.y, d.largura, d.altura);
+        }
+    });
+}
+
+function criaDecoracao(){
+    if (frame % 4 !== 0) return;
+    const tipo = Math.random() < 0.5 ? 'grama' : 'pedra';
+    const profundidade = Math.random() < 0.5 ? 'tras' : 'frente';
+    decoracoes.push({
+        x: canvas.width,
+        y: canvas.height - 50 + 30,
+        largura: 10,
+        altura: 10,
+        tipo,
+        profundidade
+    });
+    tempoProximaDecoracao = frame + Math.floor(Math.random() * 20 + 10);
+}
+
+function atualizaDecoracoes(){
+    decoracoes.forEach(d => d.x -= velocidadeCenario);
+    decoracoes = decoracoes.filter(d => d.x + d.largura > 0);
+}
+
+function existeCrateraProxima(x, raio) {
+    return crateras.some(c => Math.abs(c.x - x) < c.largura / 2 + raio + 20);
+}
+
+function criaMeteoro() {
+    let origemX;
+    if (Math.random() < 0.7) {
+        origemX = dino.x + Math.random() * (canvas.width - dino.x);
+    } else {
+        origemX = Math.floor(canvas.width * 0.5 + Math.random() * canvas.width * 0.8);
+    }
+    const pesos = [20, 20, 20, 20, 40, 40, 60];
+    const tamanho = pesos[Math.floor(Math.random() * pesos.length)];
+    const raioCratera = tamanho * 1.5;
+    if (existeCrateraProxima(origemX, raioCratera)) {
+        tempoProximoMeteoro += 10;
+        return;
+    }
+    meteoros.push({
+        x: origemX,
+        y: -tamanho,
+        largura: tamanho,
+        altura: tamanho,
+        velocidadeX: -1.5 + Math.random() * 3 - velocidadeCenario,
+        velocidadeY: velocidadeMeteoro + Math.random() * 1.5,
+        pontuado: false
+    });
+    tempoProximoMeteoro = frame + intervaloBaseMeteoro + Math.floor(Math.random() * variacaoMeteoro);
+}
+
+function desenhaMeteoros(){
+    ctx.fillStyle = '#a33';
+    meteoros.forEach(m => {
+        ctx.beginPath();
+        ctx.arc(m.x, m.y, m.largura / 2, 0, 2 * Math.PI);
+        ctx.fill();
+    });
+}
+
+function atualizaMeteoros(){
+    for (let i = meteoros.length - 1; i >= 0; i--) {
+        const m = meteoros[i];
+        m.x += m.velocidadeX;
+        m.y += m.velocidadeY;
+        if (m.y >= canvas.height - 50) {
+            crateras.push({
+                x: m.x,
+                y: canvas.height - 12,
+                largura: m.largura * 1.5,
+                altura: 12,
+                pontuado: false
+            });
+            meteoros.splice(i, 1);
+        }
+    }
+}
+
+function desenhaCrateras(){
+    ctx.fillStyle = 'rgba(255, 80, 80, 0.4)';
+    crateras.forEach(c => {
+        ctx.fillRect(c.x - c.largura / 2, c.y, c.largura, c.altura);
+    });
+}
+
+function atualizaCrateras(){
+    crateras.forEach(c => c.x -= velocidadeCenario);
+    crateras = crateras.filter(c => c.x + c.largura / 2 > 0);
+}
+
+function verificaPontuacoes(){
+    if (frame % 30 === 0) score += 2;
+
+    meteoros.forEach(m => {
+        const passouPorBaixo = !dino.pulando && m.y + m.altura > dino.y && m.y < dino.y && !m.pontuado;
+        if (passouPorBaixo && Math.abs(dino.x + dino.largura / 2 - m.x) < m.largura / 2) {
+            score += 5;
+            m.pontuado = true;
+            pontosVisuais.push({ texto: '+5', x: dino.x, y: dino.y, ttl: 40 });
+        }
+
+        const pulouSobre = dino.pulando && dino.y + dino.altura < m.y && !m.pontuado &&
+            dino.x + dino.largura > m.x - m.largura / 2 && dino.x < m.x + m.largura / 2;
+        if (pulouSobre) {
+            score += 10;
+            m.pontuado = true;
+            pontosVisuais.push({ texto: '+10', x: dino.x, y: dino.y, ttl: 40 });
+        }
+    });
+
+    crateras.forEach(c => {
+        const pulouSobre = dino.pulando && dino.y + dino.altura < c.y && !c.pontuado &&
+            dino.x + dino.largura > c.x - c.largura / 2 && dino.x < c.x + c.largura / 2;
+        if (pulouSobre) {
+            score += 2;
+            c.pontuado = true;
+            pontosVisuais.push({ texto: '+2', x: dino.x, y: dino.y, ttl: 40 });
+        }
+    });
+
+    pontosVisuais.forEach(p => p.y -= 1);
+    pontosVisuais = pontosVisuais.filter(p => --p.ttl > 0);
+}
+
+function colisao(){
+    const colideComMeteoro = meteoros.some(m => {
+        return dino.x < m.x + m.largura / 2 &&
+               dino.x + dino.largura > m.x - m.largura / 2 &&
+               dino.y < m.y + m.altura / 2 &&
+               dino.y + dino.altura > m.y - m.altura / 2;
+    });
+
+    const colideComCratera = crateras.some(c => {
+        return dino.x + dino.largura > c.x - c.largura / 2 &&
+               dino.x < c.x + c.largura / 2 &&
+               dino.y + dino.altura > c.y;
+    });
+
+    return colideComMeteoro || colideComCratera;
+}
 
 function loop(){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
