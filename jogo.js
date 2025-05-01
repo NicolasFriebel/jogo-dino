@@ -4,6 +4,9 @@ const ctx = canvas.getContext('2d');
 const dinoImg = new Image();
 dinoImg.src = 'DinoCorrendo1.png';
 
+const meteoroImg = new Image();
+meteoroImg.src = 'MeteoroM.png';
+
 const margemChao = 80;
 let chaoY = 0;
 
@@ -158,11 +161,8 @@ function atualizaMeteoros() {
 }
 
 function desenhaMeteoros() {
-    ctx.fillStyle = '#a33';
     meteoros.forEach(m => {
-        ctx.beginPath();
-        ctx.arc(m.x, m.y, m.largura / 2, 0, 2 * Math.PI);
-        ctx.fill();
+        ctx.drawImage(meteoroImg, m.x - m.largura / 2, m.y - m.altura / 2, m.largura, m.altura);
     });
 }
 
