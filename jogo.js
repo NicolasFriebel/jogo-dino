@@ -1,4 +1,4 @@
-// Versão 2.0 - Meteoros podem cair além da borda e tamanhos com probabilidade realista
+// Versão 2.1 - Frequência estável, crateras não se sobrepõem, dificuldade justa
 
 const canvas = document.getElementById('jogo');
 const ctx = canvas.getContext('2d');
@@ -16,11 +16,14 @@ let meteoros = [];
 let crateras = [];
 let decoracoes = [];
 let velocidadeCenario = 2;
+let velocidadeMeteoro = 2;
 let frame = 0;
 let score = 0;
-let tempoProximoMeteoro = 0;
+let tempoProximoMeteoro = 60;
 let tempoProximaDecoracao = 0;
 let teclasPressionadas = {};
+let intervaloBaseMeteoro = 100; // intervalo fixo base (frames)
+let variacaoMeteoro = 30; // pequena variação
 
 document.addEventListener('keydown', (e) => {
     teclasPressionadas[e.code] = true;
@@ -41,32 +44,32 @@ function desenhaDino(){
 }
 
 function atualizaDino(){
-    if (teclasPressionadas['ArrowLeft']) {
-        dino.x -= 5;
-    }
-    if (teclasPressionadas['ArrowRight']) {
-        dino.x += 5;
-    }
-
+    if (teclasPressionadas['ArrowLeft']) dino.x -= 5;
+    if (teclasPressionadas['ArrowRight']) dino.x += 5;
     dino.x = Math.max(0, Math.min(canvas.width - dino.largura, dino.x));
-
     dino.y += dino.gravidade;
     dino.gravidade += 0.5;
-
     if(dino.y >= canvas.height - 50){
         dino.y = canvas.height - 50;
         dino.pulando = false;
     }
 }
 
-function criaMeteoro(){
-    // spawn pode ir até 130% da largura da tela
-    const origemX = Math.floor(canvas.width * 0.5 + Math.random() * canvas.width * 0.8);
+function existeCrateraProxima(x, raio) {
+    return crateras.some(c => Math.abs(c.x - x) < c.raio + raio + 20); // 20px de margem mínima
+}
 
-    // tamanhos com probabilidade (4x P, 2x M, 1x G)
+function criaMeteoro(){
+    const origemX = Math.floor(canvas.width * 0.5 + Math.random() * canvas.width * 0.8);
     const pesos = [20, 20, 20, 20, 40, 40, 60];
     const tamanho = pesos[Math.floor(Math.random() * pesos.length)];
-    const variacao = Math.random() * 1.5;
+    const raioCratera = tamanho * 1.5;
+
+    // evitar crateras sobrepostas
+    if (existeCrateraProxima(origemX, raioCratera)) {
+        tempoProximoMeteoro += 10; // adia o spawn se não houver espaço
+        return;
+    }
 
     meteoros.push({
         x: origemX,
@@ -74,13 +77,11 @@ function criaMeteoro(){
         largura: tamanho,
         altura: tamanho,
         velocidadeX: -1.5 + Math.random() * 3 - velocidadeCenario,
-        velocidadeY: velocidadeCenario * 1.2 + variacao,
-        raioCratera: tamanho * 1.5
+        velocidadeY: velocidadeMeteoro + Math.random() * 1.5,
+        raioCratera: raioCratera
     });
 
-    const minEspaco = 40;
-    const maxEspaco = 100;
-    tempoProximoMeteoro = frame + Math.floor(Math.random() * (maxEspaco - minEspaco) + minEspaco);
+    tempoProximoMeteoro = frame + intervaloBaseMeteoro + Math.floor(Math.random() * variacaoMeteoro);
 }
 
 function desenhaMeteoros(){
@@ -149,7 +150,6 @@ function atualizaDecoracoes(){
     decoracoes.forEach(d => {
         d.x -= velocidadeCenario;
     });
-
     decoracoes = decoracoes.filter(d => d.x + d.largura > 0);
 }
 
@@ -177,11 +177,11 @@ function loop(){
     desenhaDino();
     atualizaDino();
 
-    if (frame === tempoProximoMeteoro) {
+    if (frame >= tempoProximoMeteoro) {
         criaMeteoro();
     }
 
-    if (frame === tempoProximaDecoracao) {
+    if (frame >= tempoProximaDecoracao) {
         criaDecoracao();
     }
 
@@ -202,12 +202,13 @@ function loop(){
         frame++;
 
         if (frame % 400 === 0) {
-            velocidadeCenario += 0.3;
+            velocidadeCenario += 0.2;
+            velocidadeMeteoro += 0.3; // aumenta apenas a velocidade dos meteoros
         }
 
         requestAnimationFrame(loop);
     }
 }
 
-criaMeteoro();
+tempoProximoMeteoro = 60;
 loop();
