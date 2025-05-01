@@ -1,11 +1,20 @@
 const canvas = document.getElementById('jogo');
 const ctx = canvas.getContext('2d');
 
-let dino = {x: 50, y: 100, largura: 40, altura: 40, pulando: false, gravidade: 0};
+let dino = {
+    x: 50,
+    y: 100,
+    largura: 40,
+    altura: 40,
+    pulando: false,
+    gravidade: 0
+};
+
 let obstaculos = [];
 let velocidadeJogo = 6;
 let frame = 0;
 let score = 0;
+let proximoObstaculoFrame = 0;
 
 document.addEventListener('keydown', function(event){
     if(event.code === 'Space' && !dino.pulando){
@@ -30,16 +39,25 @@ function atualizaDino(){
 }
 
 function criaObstaculo(){
-    obstaculos.push({x: 600, y: 120, largura: 10, altura: 20});
+    obstaculos.push({
+        x: canvas.width,
+        y: 120,
+        largura: 10,
+        altura: 20
+    });
 }
 
 function desenhaObstaculos(){
     ctx.fillStyle = '#888';
-    obstaculos.forEach(obs => ctx.fillRect(obs.x, obs.y, obs.largura, obs.altura));
+    obstaculos.forEach(obs => {
+        ctx.fillRect(obs.x, obs.y, obs.largura, obs.altura);
+    });
 }
 
 function atualizaObstaculos(){
-    obstaculos.forEach(obs => obs.x -= velocidadeJogo);
+    obstaculos.forEach(obs => {
+        obs.x -= velocidadeJogo;
+    });
     obstaculos = obstaculos.filter(obs => obs.x + obs.largura > 0);
 }
 
@@ -58,8 +76,9 @@ function loop(){
     desenhaDino();
     atualizaDino();
 
-    if(frame % 90 === 0){
+    if (frame === proximoObstaculoFrame) {
         criaObstaculo();
+        proximoObstaculoFrame = frame + Math.floor(Math.random() * 100 + 120); // evita obstáculos seguidos
     }
 
     desenhaObstaculos();
@@ -71,6 +90,12 @@ function loop(){
     } else {
         score++;
         frame++;
+
+        // Aumenta a dificuldade a cada 500 frames (~8 segundos)
+        if (frame % 500 === 0) {
+            velocidadeJogo += 0.5;
+        }
+
         requestAnimationFrame(loop);
     }
 }
