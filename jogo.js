@@ -1,4 +1,4 @@
-// Versão 2.3 - Crateras fixas no chão, hitbox justa por borda, menos decoração
+// Versão 2.4 - Crateras realistas, letais e bem posicionadas
 
 const canvas = document.getElementById('jogo');
 const ctx = canvas.getContext('2d');
@@ -101,7 +101,7 @@ function atualizaMeteoros(){
         if (m.y >= canvas.height - 50) {
             crateras.push({
                 x: m.x,
-                y: canvas.height - 50, // fixa no chão
+                y: canvas.height - 50 - m.raioCratera, // centro alinhado para base tocar o chão
                 raio: m.raioCratera
             });
             meteoros.splice(i, 1);
@@ -126,7 +126,7 @@ function atualizaCrateras(){
 }
 
 function criaDecoracao(){
-    if (frame % 4 !== 0) return; // reduz para 1/4 da frequência anterior
+    if (frame % 4 !== 0) return; // 1/4 da frequência anterior
 
     const tipo = Math.random() < 0.5 ? 'grama' : 'pedra';
     decoracoes.push({
@@ -163,16 +163,12 @@ function colisao(){
     });
 
     const colideComCratera = crateras.some(c => {
-        const crateraTopo = canvas.height - 50 - 10; // 10px acima do chão
-        const crateraBase = canvas.height - 50 + 10;
-        const dinoBase = dino.y + dino.altura;
-
-        return (
-            dinoBase >= crateraTopo &&
-            dinoBase <= crateraBase &&
-            dino.x + dino.largura > c.x - c.raio &&
-            dino.x < c.x + c.raio
-        );
+        const dinoCentroX = dino.x + dino.largura / 2;
+        const dinoBaseY = dino.y + dino.altura;
+        const dx = dinoCentroX - c.x;
+        const dy = dinoBaseY - c.y;
+        const distancia = Math.sqrt(dx * dx + dy * dy);
+        return distancia < c.raio;
     });
 
     return colideComMeteoro || colideComCratera;
