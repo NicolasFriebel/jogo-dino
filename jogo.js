@@ -1,3 +1,5 @@
+// Versão 3.1 - Frequência maior, velocidade inicial maior, spawn ajustado para sempre cair dentro da tela
+
 const canvas = document.getElementById('jogo');
 const ctx = canvas.getContext('2d');
 
@@ -16,15 +18,15 @@ let decoracoes = [];
 let pontosVisuais = [];
 
 let velocidadeCenario = 4;
-let velocidadeMeteoro = 3;
+let velocidadeMeteoro = 5;
 let frame = 0;
 let score = 0;
 let tempoProximoMeteoro = 60;
 let tempoProximaDecoracao = 0;
 let teclasPressionadas = {};
-let intervaloBaseMeteoro = 140;
-let variacaoMeteoro = 30;
-const intervaloMinimoMeteoro = 70;
+let intervaloBaseMeteoro = 100;
+let variacaoMeteoro = 50;
+const intervaloMinimoMeteoro = 60;
 
 ctx.font = '18px Arial';
 ctx.fillStyle = '#333';
@@ -41,7 +43,7 @@ document.addEventListener('keyup', (e) => {
     teclasPressionadas[e.code] = false;
 });
 
-function atualizaDino(){
+function atualizaDino() {
     if (teclasPressionadas['ArrowLeft']) dino.x -= 5;
     if (teclasPressionadas['ArrowRight']) dino.x += 5;
     dino.x = Math.max(0, Math.min(canvas.width - dino.largura, dino.x));
@@ -53,12 +55,12 @@ function atualizaDino(){
     }
 }
 
-function desenhaDino(){
+function desenhaDino() {
     ctx.fillStyle = '#555';
     ctx.fillRect(dino.x, dino.y, dino.largura, dino.altura);
 }
 
-function desenhaPontos(){
+function desenhaPontos() {
     ctx.fillStyle = '#000';
     ctx.fillText(`Score: ${score}`, 10, 20);
     pontosVisuais.forEach(p => {
@@ -67,7 +69,7 @@ function desenhaPontos(){
     });
 }
 
-function desenhaDecoracoes(profundidade){
+function desenhaDecoracoes(profundidade) {
     decoracoes.forEach(d => {
         if (d.profundidade === profundidade) {
             ctx.fillStyle = d.tipo === 'grama' ? '#4caf50' : '#888';
@@ -76,7 +78,7 @@ function desenhaDecoracoes(profundidade){
     });
 }
 
-function criaDecoracao(){
+function criaDecoracao() {
     if (frame % 4 !== 0) return;
     const tipo = Math.random() < 0.5 ? 'grama' : 'pedra';
     const profundidade = Math.random() < 0.5 ? 'tras' : 'frente';
@@ -91,7 +93,7 @@ function criaDecoracao(){
     tempoProximaDecoracao = frame + Math.floor(Math.random() * 20 + 10);
 }
 
-function atualizaDecoracoes(){
+function atualizaDecoracoes() {
     decoracoes.forEach(d => d.x -= velocidadeCenario);
     decoracoes = decoracoes.filter(d => d.x + d.largura > 0);
 }
@@ -104,12 +106,14 @@ function criaMeteoro() {
     let origemX;
     let zona = Math.random();
     if (zona < 0.2) {
-        origemX = Math.random() * canvas.width * 0.3; // esquerda
+        origemX = Math.random() * canvas.width * 0.3;
     } else if (zona < 0.5) {
-        origemX = canvas.width * 0.35 + Math.random() * canvas.width * 0.3; // centro
+        origemX = canvas.width * 0.35 + Math.random() * canvas.width * 0.3;
     } else {
-        origemX = canvas.width * 0.7 + Math.random() * canvas.width * 0.3; // direita
+        origemX = canvas.width - 40 + Math.random() * 60;
     }
+
+    origemX = Math.min(Math.max(origemX, 0), canvas.width);
 
     const pesos = [20, 20, 20, 20, 40, 40, 60];
     const tamanho = pesos[Math.floor(Math.random() * pesos.length)];
@@ -135,7 +139,7 @@ function criaMeteoro() {
     tempoProximoMeteoro = frame + intervaloBaseMeteoro + Math.floor(Math.random() * variacaoMeteoro);
 }
 
-function desenhaMeteoros(){
+function desenhaMeteoros() {
     ctx.fillStyle = '#a33';
     meteoros.forEach(m => {
         ctx.beginPath();
@@ -144,7 +148,7 @@ function desenhaMeteoros(){
     });
 }
 
-function atualizaMeteoros(){
+function atualizaMeteoros() {
     for (let i = meteoros.length - 1; i >= 0; i--) {
         const m = meteoros[i];
         m.x += m.velocidadeX;
@@ -162,19 +166,19 @@ function atualizaMeteoros(){
     }
 }
 
-function desenhaCrateras(){
+function desenhaCrateras() {
     ctx.fillStyle = 'rgba(255, 80, 80, 0.4)';
     crateras.forEach(c => {
         ctx.fillRect(c.x - c.largura / 2, c.y, c.largura, c.altura);
     });
 }
 
-function atualizaCrateras(){
+function atualizaCrateras() {
     crateras.forEach(c => c.x -= velocidadeCenario);
     crateras = crateras.filter(c => c.x + c.largura / 2 > 0);
 }
 
-function verificaPontuacoes(){
+function verificaPontuacoes() {
     if (frame % 30 === 0) score += 2;
 
     meteoros.forEach(m => {
@@ -208,7 +212,7 @@ function verificaPontuacoes(){
     pontosVisuais = pontosVisuais.filter(p => --p.ttl > 0);
 }
 
-function colisao(){
+function colisao() {
     const colideComMeteoro = meteoros.some(m => {
         return dino.x < m.x + m.largura / 2 &&
                dino.x + dino.largura > m.x - m.largura / 2 &&
@@ -225,7 +229,7 @@ function colisao(){
     return colideComMeteoro || colideComCratera;
 }
 
-function loop(){
+function loop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     desenhaDecoracoes('tras');
