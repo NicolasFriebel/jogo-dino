@@ -97,24 +97,28 @@ function atualizaDecoracoes(){
 }
 
 function criaMeteoro() {
-    const angulo = (210 + Math.random() * 120) * (Math.PI / 180); // entre 210° e 330°
-    const raio = Math.max(canvas.width, canvas.height) * 1.2;
-    const origemX = canvas.width / 2 + Math.cos(angulo) * raio;
-    const origemY = canvas.height / 2 + Math.sin(angulo) * raio;
+    const destinoX = Math.random() * (canvas.width + 100); // até um pouco à direita da tela
+    const destinoY = canvas.height - 50;
+
+    const angulo = (210 + Math.random() * 120) * (Math.PI / 180); // 210° a 330°
+    const distancia = canvas.height + 200; // distância vertical para fora da tela
+
+    const origemX = destinoX - Math.cos(angulo) * distancia;
+    const origemY = destinoY - Math.sin(angulo) * distancia;
 
     const tamanho = [20, 20, 20, 40, 40, 60][Math.floor(Math.random() * 6)];
     const velocidade = velocidadeMeteoro + Math.random() * 1.5;
-    const velocidadeX = Math.cos(angulo) * velocidade;
-    const velocidadeY = Math.sin(angulo) * velocidade;
+    const dx = destinoX - origemX;
+    const dy = destinoY - origemY;
+    const tempo = distancia / velocidade;
 
     meteoros.push({
-        tipo: 'angular',
         x: origemX,
         y: origemY,
         largura: tamanho,
         altura: tamanho,
-        velocidadeX,
-        velocidadeY,
+        velocidadeX: dx / tempo,
+        velocidadeY: dy / tempo,
         pontuado: false
     });
 
