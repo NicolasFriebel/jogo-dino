@@ -4,6 +4,9 @@ const ctx = canvas.getContext('2d');
 const dinoImg = new Image();
 dinoImg.src = 'DinoCorrendo1.png';
 
+const margemChao = 80;
+let chaoY = 0;
+
 let dino = {
     largura: 108,
     altura: 54,
@@ -16,7 +19,8 @@ let dino = {
 function redimensionaCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    dino.y = canvas.height - 50 - dino.altura;
+    chaoY = canvas.height - margemChao;
+    dino.y = chaoY - dino.altura;
 }
 window.addEventListener('resize', redimensionaCanvas);
 redimensionaCanvas();
@@ -28,9 +32,6 @@ let tempoProximoMeteoro = 60, tempoProximaDecoracao = 0;
 let teclasPressionadas = {};
 let intervaloBaseMeteoro = 100, variacaoMeteoro = 50;
 const intervaloMinimoMeteoro = 70;
-
-ctx.font = '18px Arial';
-ctx.fillStyle = '#333';
 
 document.addEventListener('keydown', (e) => {
     teclasPressionadas[e.code] = true;
@@ -47,8 +48,8 @@ function atualizaDino() {
     dino.x = Math.max(0, Math.min(canvas.width - dino.largura, dino.x));
     dino.y += dino.gravidade;
     dino.gravidade += 0.75;
-    if (dino.y >= canvas.height - 50 - dino.altura) {
-        dino.y = canvas.height - 50 - dino.altura;
+    if (dino.y >= chaoY - dino.altura) {
+        dino.y = chaoY - dino.altura;
         dino.pulando = false;
     }
 }
@@ -59,7 +60,10 @@ function desenhaDino() {
 
 function desenhaPontos() {
     ctx.fillStyle = '#000';
-    ctx.fillText(`Score: ${score}`, 10, 20);
+    ctx.font = 'bold 36px Arial';
+    const texto = `${score}`;
+    const larguraTexto = ctx.measureText(texto).width;
+    ctx.fillText(texto, (canvas.width - larguraTexto) / 2, 50);
     pontosVisuais.forEach(p => {
         ctx.fillStyle = '#2e7d32';
         ctx.fillText(p.texto, p.x, p.y);
@@ -70,7 +74,7 @@ function desenhaDecoracoes(profundidade) {
     decoracoes.forEach(d => {
         if (d.profundidade === profundidade) {
             ctx.fillStyle = d.tipo === 'grama' ? '#4caf50' : '#888';
-            ctx.fillRect(d.x, d.y, d.largura, d.altura);
+            ctx.fillRect(d.x, chaoY + 30, d.largura, d.altura);
         }
     });
 }
@@ -81,7 +85,6 @@ function criaDecoracao() {
     const profundidade = Math.random() < 0.5 ? 'tras' : 'frente';
     decoracoes.push({
         x: canvas.width,
-        y: canvas.height - 50 + 30,
         largura: 10,
         altura: 10,
         tipo,
@@ -100,7 +103,7 @@ function criaMeteoro() {
     if (tipoRazante) {
         const vindoDaEsquerda = Math.random() < 0.5;
         const origemX = vindoDaEsquerda ? -60 : canvas.width + 60;
-        const origemY = canvas.height - 140 + Math.random() * 40;
+        const origemY = chaoY - 90 + Math.random() * 40;
         const velX = vindoDaEsquerda ? 9 + Math.random() * 2 : -9 - Math.random() * 2;
         const velY = 1.2 + Math.random();
         meteoros.push({
@@ -141,10 +144,10 @@ function atualizaMeteoros() {
         const m = meteoros[i];
         m.x += m.velocidadeX;
         m.y += m.velocidadeY;
-        if (m.y >= canvas.height - 50) {
+        if (m.y >= chaoY) {
             crateras.push({
                 x: m.x,
-                y: canvas.height - 12,
+                y: chaoY + 2,
                 largura: m.largura * 1.5,
                 altura: 12,
                 pontuado: false
