@@ -1,4 +1,4 @@
-// Versão 1.9 - Meteoros caem apenas no setor direito (zona de ameaça real)
+// Versão 2.0 - Meteoros podem cair além da borda e tamanhos com probabilidade realista
 
 const canvas = document.getElementById('jogo');
 const ctx = canvas.getContext('2d');
@@ -60,10 +60,12 @@ function atualizaDino(){
 }
 
 function criaMeteoro(){
-    // nova lógica: nasce entre 60% e 100% da tela
-    const origemX = Math.floor(canvas.width * 0.6 + Math.random() * canvas.width * 0.4);
-    const tamanhos = [20, 40, 60];
-    const tamanho = tamanhos[Math.floor(Math.random() * tamanhos.length)];
+    // spawn pode ir até 130% da largura da tela
+    const origemX = Math.floor(canvas.width * 0.5 + Math.random() * canvas.width * 0.8);
+
+    // tamanhos com probabilidade (4x P, 2x M, 1x G)
+    const pesos = [20, 20, 20, 20, 40, 40, 60];
+    const tamanho = pesos[Math.floor(Math.random() * pesos.length)];
     const variacao = Math.random() * 1.5;
 
     meteoros.push({
