@@ -1,3 +1,5 @@
+// Versão 1.1 - Obstáculos com espaçamento aleatório (corrigido) e aumento gradual da velocidade
+
 const canvas = document.getElementById('jogo');
 const ctx = canvas.getContext('2d');
 
@@ -14,7 +16,7 @@ let obstaculos = [];
 let velocidadeJogo = 6;
 let frame = 0;
 let score = 0;
-let proximoObstaculoFrame = 0;
+let tempoProximoObstaculo = 0;
 
 document.addEventListener('keydown', function(event){
     if(event.code === 'Space' && !dino.pulando){
@@ -45,6 +47,11 @@ function criaObstaculo(){
         largura: 10,
         altura: 20
     });
+
+    // Gera tempo aleatório para o próximo obstáculo com base na velocidade
+    const minEspaco = Math.max(60, 120 - velocidadeJogo * 5); // distância mínima de segurança
+    const maxEspaco = 200;
+    tempoProximoObstaculo = frame + Math.floor(Math.random() * (maxEspaco - minEspaco) + minEspaco);
 }
 
 function desenhaObstaculos(){
@@ -76,9 +83,8 @@ function loop(){
     desenhaDino();
     atualizaDino();
 
-    if (frame === proximoObstaculoFrame) {
+    if (frame === tempoProximoObstaculo) {
         criaObstaculo();
-        proximoObstaculoFrame = frame + Math.floor(Math.random() * 100 + 120); // evita obstáculos seguidos
     }
 
     desenhaObstaculos();
@@ -91,7 +97,7 @@ function loop(){
         score++;
         frame++;
 
-        // Aumenta a dificuldade a cada 500 frames (~8 segundos)
+        // Aumenta gradualmente a velocidade
         if (frame % 500 === 0) {
             velocidadeJogo += 0.5;
         }
@@ -100,4 +106,6 @@ function loop(){
     }
 }
 
+criaObstaculo(); // Inicia com o primeiro obstáculo já agendado
 loop();
+
