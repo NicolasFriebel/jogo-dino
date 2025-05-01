@@ -1,14 +1,18 @@
 const canvas = document.getElementById('jogo');
 const ctx = canvas.getContext('2d');
 
+// Fullscreen adaptável
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
 const dinoImg = new Image();
 dinoImg.src = 'DinoCorrendo1.png';
 
 let dino = {
+    largura: 108,
+    altura: 54,
     x: 100,
-    y: 400,
-    largura: 54, // 540 ÷ 10
-    altura: 27,  // 270 ÷ 10
+    y: canvas.height - 50 - 54, // encostado no chão
     pulando: false,
     gravidade: 0
 };
@@ -39,8 +43,8 @@ function atualizaDino() {
     dino.x = Math.max(0, Math.min(canvas.width - dino.largura, dino.x));
     dino.y += dino.gravidade;
     dino.gravidade += 0.75;
-    if (dino.y >= canvas.height - 50) {
-        dino.y = canvas.height - 50;
+    if (dino.y >= canvas.height - 50 - dino.altura) {
+        dino.y = canvas.height - 50 - dino.altura;
         dino.pulando = false;
     }
 }
