@@ -1,4 +1,4 @@
-// Versão 2.5 - Crateras finalmente posicionadas corretamente
+// Versão 2.2 - Hitbox refinada, raptor mais veloz, frequência inicial reduzida
 
 const canvas = document.getElementById('jogo');
 const ctx = canvas.getContext('2d');
@@ -15,14 +15,14 @@ let dino = {
 let meteoros = [];
 let crateras = [];
 let decoracoes = [];
-let velocidadeCenario = 4;
-let velocidadeMeteoro = 3;
+let velocidadeCenario = 4; // mais veloz
+let velocidadeMeteoro = 3; // queda mais rápida
 let frame = 0;
 let score = 0;
 let tempoProximoMeteoro = 60;
 let tempoProximaDecoracao = 0;
 let teclasPressionadas = {};
-let intervaloBaseMeteoro = 140;
+let intervaloBaseMeteoro = 140; // menos frequente no início
 let variacaoMeteoro = 30;
 
 document.addEventListener('keydown', (e) => {
@@ -101,7 +101,7 @@ function atualizaMeteoros(){
         if (m.y >= canvas.height - 50) {
             crateras.push({
                 x: m.x,
-                y: canvas.height - 50 + m.raioCratera, // ✅ centro correto
+                y: canvas.height - 50 + m.altura / 2,
                 raio: m.raioCratera
             });
             meteoros.splice(i, 1);
@@ -126,8 +126,6 @@ function atualizaCrateras(){
 }
 
 function criaDecoracao(){
-    if (frame % 4 !== 0) return;
-
     const tipo = Math.random() < 0.5 ? 'grama' : 'pedra';
     decoracoes.push({
         x: canvas.width,
@@ -163,12 +161,10 @@ function colisao(){
     });
 
     const colideComCratera = crateras.some(c => {
-        const dinoCentroX = dino.x + dino.largura / 2;
-        const dinoBaseY = dino.y + dino.altura;
-        const dx = dinoCentroX - c.x;
-        const dy = dinoBaseY - c.y;
-        const distancia = Math.sqrt(dx * dx + dy * dy);
-        return distancia < c.raio;
+        const distX = (dino.x + dino.largura / 2) - c.x;
+        const distY = (dino.y + dino.altura) - c.y; // usa a base do dino
+        const distancia = Math.sqrt(distX * distX + distY * distY);
+        return distancia < c.raio * 0.85; // hitbox refinada
     });
 
     return colideComMeteoro || colideComCratera;
