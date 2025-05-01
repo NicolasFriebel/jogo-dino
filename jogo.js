@@ -19,17 +19,16 @@ let imagemAtual = dinoParadoImg;
 const margemChao = 80;
 let chaoY = 0;
 
-// Cena de introdução
 let cenaIntro = true;
 let tempoIntro = 0;
 let jogoIniciado = false;
-let meteoroIntro = null;
 let tituloExibido = false;
 let tempoTitulo = 0;
+let meteoroIntro = null;
 
 let dino = {
-    largura: 500,
-    altura: 500,
+    largura: 108,
+    altura: 108,
     x: 0,
     y: 0,
     pulando: false,
@@ -141,14 +140,13 @@ function loop() {
 
         if (tempoIntro < 90) {
             imagemAtual = dinoParadoImg;
-            dino.largura = 500;
-            dino.altura = 500;
+            dino.largura = dino.altura = 108;
             dino.x = canvas.width / 2 - dino.largura / 2;
             dino.y = chaoY - dino.altura;
         } else if (tempoIntro < 180) {
             imagemAtual = dinoOlhandoImg;
         } else if (tempoIntro === 180) {
-            criarMeteoroIntro();
+            criaMeteoroIntro();
         }
 
         desenhaDino();
@@ -201,8 +199,6 @@ function loop() {
         requestAnimationFrame(loop);
     }
 }
-
-// Outras funções como criaMeteoro, desenhaMeteoros, verificaPontuacoes etc. já devem estar definidas no código anterior (versão 3.4).
 
 tempoProximoMeteoro = 60;
 loop();
