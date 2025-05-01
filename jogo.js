@@ -1,7 +1,6 @@
 const canvas = document.getElementById('jogo');
 const ctx = canvas.getContext('2d');
 
-// Imagens
 const dinoParadoImg = new Image();
 dinoParadoImg.src = 'DinoParado.png';
 
@@ -62,6 +61,15 @@ document.addEventListener('keydown', (e) => {
 });
 document.addEventListener('keyup', (e) => teclasPressionadas[e.code] = false);
 
+function desenhaChao() {
+    ctx.strokeStyle = '#444';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, chaoY);
+    ctx.lineTo(canvas.width, chaoY);
+    ctx.stroke();
+}
+
 function desenhaDecoracoes(profundidade) {
     decoracoes.forEach(d => {
         if (d.profundidade === profundidade) {
@@ -72,17 +80,15 @@ function desenhaDecoracoes(profundidade) {
 }
 
 function criaDecoracao() {
-    if (frame % 4 !== 0) return;
     const tipo = Math.random() < 0.5 ? 'grama' : 'pedra';
     const profundidade = Math.random() < 0.5 ? 'tras' : 'frente';
     decoracoes.push({
-        x: canvas.width,
+        x: canvas.width + Math.random() * 300,
         largura: 10,
         altura: 10,
         tipo,
         profundidade
     });
-    tempoProximaDecoracao = frame + Math.floor(Math.random() * 20 + 10);
 }
 
 function atualizaDecoracoes() {
@@ -90,23 +96,12 @@ function atualizaDecoracoes() {
     decoracoes = decoracoes.filter(d => d.x + d.largura > 0);
 }
 
-function atualizaDino() {
-    if (teclasPressionadas['ArrowLeft']) dino.x -= 7.5;
-    if (teclasPressionadas['ArrowRight']) dino.x += 7.5;
-    dino.x = Math.max(0, Math.min(canvas.width - dino.largura, dino.x));
-    dino.y += dino.gravidade;
-    dino.gravidade += 0.75;
-    if (dino.y >= chaoY - dino.altura) {
-        dino.y = chaoY - dino.altura;
-        dino.pulando = false;
-    }
-}
-
 function desenhaDino() {
     ctx.drawImage(imagemAtual, dino.x, dino.y, dino.largura, dino.altura);
 }
 
 function desenhaTitulo() {
+    if (!tituloExibido) return;
     ctx.save();
     ctx.font = '32px "Press Start 2P"';
     ctx.fillStyle = '#000';
@@ -153,11 +148,68 @@ function desenhaMeteoroIntro() {
         ctx.drawImage(meteoroImg, meteoroIntro.x, meteoroIntro.y, meteoroIntro.largura, meteoroIntro.altura);
 
         if (meteoroIntro.y >= chaoY - meteoroIntro.altura) {
+            crateras.push({
+                x: meteoroIntro.x + meteoroIntro.largura / 2,
+                y: chaoY - 12,
+                largura: meteoroIntro.largura * 1.5,
+                altura: 12,
+                pontuado: false
+            });
             meteoroIntro = null;
             tituloExibido = true;
             tempoTitulo = 0;
         }
     }
+}
+
+function atualizaDino() {
+    if (teclasPressionadas['ArrowLeft']) dino.x -= 7.5;
+    if (teclasPressionadas['ArrowRight']) dino.x += 7.5;
+    dino.x = Math.max(0, Math.min(canvas.width - dino.largura, dino.x));
+    dino.y += dino.gravidade;
+    dino.gravidade += 0.75;
+    if (dino.y >= chaoY - dino.altura) {
+        dino.y = chaoY - dino.altura;
+        dino.pulando = false;
+    }
+}
+
+function verificaPontuacoes() {
+    if (frame % 30 === 0) score += 2;
+    meteoros.forEach(m => {
+        const distX = Math.abs((dino.x + dino.largura / 2) - m.x);
+        const nearMissRange = m.largura * 2;
+        const nearMiss = !dino.pulando && m.y + m.altura >= dino.y && distX < nearMissRange && !m.pontuado;
+        if (nearMiss) {
+            score += 5;
+            m.pontuado = true;
+            pontosVisuais.push({ texto: '+5', x: dino.x, y: dino.y, ttl: 40 });
+        }
+        const pulouSobre = dino.pulando &&
+            dino.y + dino.altura < m.y &&
+            dino.x + dino.largura > m.x - m.largura / 2 &&
+            dino.x < m.x + m.largura / 2 &&
+            !m.pontuado;
+        if (pulouSobre) {
+            score += 10;
+            m.pontuado = true;
+            pontosVisuais.push({ texto: '+10', x: dino.x, y: dino.y, ttl: 40 });
+        }
+    });
+    crateras.forEach(c => {
+        const pulouSobre = dino.pulando &&
+            dino.y + dino.altura < c.y &&
+            dino.x + dino.largura > c.x - c.largura / 2 &&
+            dino.x < c.x + c.largura / 2 &&
+            !c.pontuado;
+        if (pulouSobre) {
+            score += 2;
+            c.pontuado = true;
+            pontosVisuais.push({ texto: '+2', x: dino.x, y: dino.y, ttl: 40 });
+        }
+    });
+    pontosVisuais.forEach(p => p.y -= 1);
+    pontosVisuais = pontosVisuais.filter(p => --p.ttl > 0);
 }
 
 function criaMeteoro() {
@@ -212,44 +264,6 @@ function atualizaCrateras() {
     crateras = crateras.filter(c => c.x + c.largura / 2 > 0);
 }
 
-function verificaPontuacoes() {
-    if (frame % 30 === 0) score += 2;
-    meteoros.forEach(m => {
-        const distX = Math.abs((dino.x + dino.largura / 2) - m.x);
-        const nearMissRange = m.largura * 2;
-        const nearMiss = !dino.pulando && m.y + m.altura >= dino.y && distX < nearMissRange && !m.pontuado;
-        if (nearMiss) {
-            score += 5;
-            m.pontuado = true;
-            pontosVisuais.push({ texto: '+5', x: dino.x, y: dino.y, ttl: 40 });
-        }
-        const pulouSobre = dino.pulando &&
-            dino.y + dino.altura < m.y &&
-            dino.x + dino.largura > m.x - m.largura / 2 &&
-            dino.x < m.x + m.largura / 2 &&
-            !m.pontuado;
-        if (pulouSobre) {
-            score += 10;
-            m.pontuado = true;
-            pontosVisuais.push({ texto: '+10', x: dino.x, y: dino.y, ttl: 40 });
-        }
-    });
-    crateras.forEach(c => {
-        const pulouSobre = dino.pulando &&
-            dino.y + dino.altura < c.y &&
-            dino.x + dino.largura > c.x - c.largura / 2 &&
-            dino.x < c.x + c.largura / 2 &&
-            !c.pontuado;
-        if (pulouSobre) {
-            score += 2;
-            c.pontuado = true;
-            pontosVisuais.push({ texto: '+2', x: dino.x, y: dino.y, ttl: 40 });
-        }
-    });
-    pontosVisuais.forEach(p => p.y -= 1);
-    pontosVisuais = pontosVisuais.filter(p => --p.ttl > 0);
-}
-
 function colisao() {
     const colideComMeteoro = meteoros.some(m => {
         return dino.x < m.x + m.largura / 2 &&
@@ -267,10 +281,10 @@ function colisao() {
 
 function loop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    desenhaChao();
 
     if (cenaIntro) {
         tempoIntro++;
-
         if (tempoIntro < 90) {
             imagemAtual = dinoParadoImg;
             dino.largura = dino.altura = 108;
@@ -286,21 +300,19 @@ function loop() {
         desenhaDino();
         desenhaDecoracoes('frente');
         desenhaMeteoroIntro();
+        desenhaTitulo();
+        atualizaDecoracoes();
 
-        if (tituloExibido) {
-            desenhaTitulo();
-            tempoTitulo++;
-            if (tempoTitulo > 90) {
-                cenaIntro = false;
-                jogoIniciado = true;
-                imagemAtual = dinoCorrendoImg;
-                dino.largura = 108;
-                dino.altura = 54;
-                // dino.x permanece no centro
-                dino.y = chaoY - dino.altura;
-            }
+        if (tituloExibido && tempoTitulo > 90) {
+            cenaIntro = false;
+            jogoIniciado = true;
+            imagemAtual = dinoCorrendoImg;
+            dino.largura = 108;
+            dino.altura = 54;
+            dino.y = chaoY - dino.altura;
         }
 
+        if (tituloExibido) tempoTitulo++;
         requestAnimationFrame(loop);
         return;
     }
@@ -336,4 +348,5 @@ function loop() {
 }
 
 tempoProximoMeteoro = 60;
+for (let i = 0; i < 25; i++) criaDecoracao(); // Inicializa cenário na intro
 loop();
