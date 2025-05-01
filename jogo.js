@@ -1,10 +1,6 @@
 const canvas = document.getElementById('jogo');
 const ctx = canvas.getContext('2d');
 
-// Fullscreen adaptável
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
 const dinoImg = new Image();
 dinoImg.src = 'DinoCorrendo1.png';
 
@@ -12,10 +8,18 @@ let dino = {
     largura: 108,
     altura: 54,
     x: 100,
-    y: canvas.height - 50 - 54, // encostado no chão
+    y: 0,
     pulando: false,
     gravidade: 0
 };
+
+function redimensionaCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    dino.y = canvas.height - 50 - dino.altura;
+}
+window.addEventListener('resize', redimensionaCanvas);
+redimensionaCanvas();
 
 let meteoros = [], crateras = [], decoracoes = [], pontosVisuais = [];
 let velocidadeCenario = 6, velocidadeMeteoro = 7.5;
