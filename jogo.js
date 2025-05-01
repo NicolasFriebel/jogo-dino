@@ -62,15 +62,22 @@ function desenhaDino() {
 }
 
 function desenhaPontos() {
+    ctx.save();
+    ctx.font = '36px "Press Start 2P"';
     ctx.fillStyle = '#000';
-    ctx.font = 'bold 36px Arial';
+    ctx.globalAlpha = 0.25;
+
     const texto = `${score}`;
     const larguraTexto = ctx.measureText(texto).width;
-    ctx.fillText(texto, (canvas.width - larguraTexto) / 2, 50);
+    ctx.fillText(texto, (canvas.width - larguraTexto) / 2, canvas.height / 2);
+
+    ctx.globalAlpha = 1.0;
     pontosVisuais.forEach(p => {
-        ctx.fillStyle = '#2e7d32';
+        ctx.fillStyle = '#000';
+        ctx.font = '16px "Press Start 2P"';
         ctx.fillText(p.texto, p.x, p.y);
     });
+    ctx.restore();
 }
 
 function desenhaDecoracoes(profundidade) {
@@ -127,14 +134,14 @@ function criaMeteoro() {
         else origemX = canvas.width * 0.7 + Math.random() * canvas.width * 0.35;
         const tamanhos = [20, 20, 20, 40, 40, 60];
         const tamanho = tamanhos[Math.floor(Math.random() * tamanhos.length)];
-        const anguloX = (Math.random() - 0.5) * 4; // corrigido aqui
+        const anguloX = (Math.random() - 0.5) * 4;
         meteoros.push({
             tipo: 'vertical',
             x: origemX,
             y: -tamanho,
             largura: tamanho,
             altura: tamanho,
-            velocidadeX: anguloX, // corrigido aqui
+            velocidadeX: anguloX,
             velocidadeY: velocidadeMeteoro + Math.random() * 1.5,
             pontuado: false
         });
