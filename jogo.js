@@ -1,5 +1,3 @@
-// Versão 2.9 FINAL - Corrigido e testado: tudo funcionando
-
 const canvas = document.getElementById('jogo');
 const ctx = canvas.getContext('2d');
 
@@ -104,27 +102,36 @@ function existeCrateraProxima(x, raio) {
 
 function criaMeteoro() {
     let origemX;
-    if (Math.random() < 0.7) {
-        origemX = dino.x + Math.random() * (canvas.width - dino.x);
+    let zona = Math.random();
+    if (zona < 0.2) {
+        origemX = Math.random() * canvas.width * 0.3; // esquerda
+    } else if (zona < 0.5) {
+        origemX = canvas.width * 0.35 + Math.random() * canvas.width * 0.3; // centro
     } else {
-        origemX = Math.floor(canvas.width * 0.5 + Math.random() * canvas.width * 0.8);
+        origemX = canvas.width * 0.7 + Math.random() * canvas.width * 0.3; // direita
     }
+
     const pesos = [20, 20, 20, 20, 40, 40, 60];
     const tamanho = pesos[Math.floor(Math.random() * pesos.length)];
     const raioCratera = tamanho * 1.5;
+
     if (existeCrateraProxima(origemX, raioCratera)) {
         tempoProximoMeteoro += 10;
         return;
     }
+
+    const anguloX = (Math.random() - 0.5) * 2;
+
     meteoros.push({
         x: origemX,
         y: -tamanho,
         largura: tamanho,
         altura: tamanho,
-        velocidadeX: -1.5 + Math.random() * 3 - velocidadeCenario,
+        velocidadeX: anguloX - velocidadeCenario * 0.2,
         velocidadeY: velocidadeMeteoro + Math.random() * 1.5,
         pontuado: false
     });
+
     tempoProximoMeteoro = frame + intervaloBaseMeteoro + Math.floor(Math.random() * variacaoMeteoro);
 }
 
