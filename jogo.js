@@ -74,7 +74,7 @@ function desenhaDecoracoes(profundidade) {
     decoracoes.forEach(d => {
         if (d.profundidade === profundidade) {
             ctx.fillStyle = d.tipo === 'grama' ? '#4caf50' : '#888';
-            ctx.fillRect(d.x, chaoY + 30, d.largura, d.altura);
+            ctx.fillRect(d.x, chaoY - d.altura, d.largura, d.altura);
         }
     });
 }
@@ -147,7 +147,7 @@ function atualizaMeteoros() {
         if (m.y >= chaoY) {
             crateras.push({
                 x: m.x,
-                y: chaoY + 2,
+                y: chaoY - 12,
                 largura: m.largura * 1.5,
                 altura: 12,
                 pontuado: false
