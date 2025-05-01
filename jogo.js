@@ -1,4 +1,4 @@
-// Versão 1.6 - Meteoros sempre caem mais rápido que o deslocamento lateral
+// Versão 1.8 - Crateras letais surgem após queda dos meteoros
 
 const canvas = document.getElementById('jogo');
 const ctx = canvas.getContext('2d');
@@ -13,6 +13,7 @@ let dino = {
 };
 
 let meteoros = [];
+let crateras = [];
 let decoracoes = [];
 let velocidadeCenario = 2;
 let frame = 0;
@@ -60,14 +61,18 @@ function atualizaDino(){
 
 function criaMeteoro(){
     const origemX = Math.floor(Math.random() * canvas.width);
-    const variacao = Math.random() * 1.5; // pequena aleatoriedade
+    const tamanhos = [20, 40, 60];
+    const tamanho = tamanhos[Math.floor(Math.random() * tamanhos.length)];
+    const variacao = Math.random() * 1.5;
+
     meteoros.push({
         x: origemX,
-        y: -20,
-        largura: 20,
-        altura: 20,
+        y: -tamanho,
+        largura: tamanho,
+        altura: tamanho,
         velocidadeX: -1.5 + Math.random() * 3 - velocidadeCenario,
-        velocidadeY: velocidadeCenario * 1.2 + variacao // sempre maior que o scroll
+        velocidadeY: velocidadeCenario * 1.2 + variacao,
+        raioCratera: tamanho * 1.5
     });
 
     const minEspaco = 40;
@@ -85,12 +90,37 @@ function desenhaMeteoros(){
 }
 
 function atualizaMeteoros(){
-    meteoros.forEach(m => {
+    for (let i = meteoros.length - 1; i >= 0; i--) {
+        const m = meteoros[i];
         m.x += m.velocidadeX;
         m.y += m.velocidadeY;
-    });
 
-    meteoros = meteoros.filter(m => m.y < canvas.height + 20 && m.x + m.largura > 0);
+        if (m.y >= canvas.height - 50) {
+            // Criar cratera
+            crateras.push({
+                x: m.x,
+                y: canvas.height - 50 + m.altura / 2,
+                raio: m.raioCratera
+            });
+            meteoros.splice(i, 1); // Remove meteoro
+        }
+    }
+}
+
+function desenhaCrateras(){
+    crateras.forEach(c => {
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.raio, 0, 2 * Math.PI);
+        ctx.fillStyle = 'rgba(255, 80, 80, 0.4)';
+        ctx.fill();
+    });
+}
+
+function atualizaCrateras(){
+    crateras.forEach(c => {
+        c.x -= velocidadeCenario;
+    });
+    crateras = crateras.filter(c => c.x + c.raio > 0);
 }
 
 function criaDecoracao(){
@@ -122,12 +152,21 @@ function atualizaDecoracoes(){
 }
 
 function colisao(){
-    return meteoros.some(m => {
+    const colideComMeteoro = meteoros.some(m => {
         return dino.x < m.x + m.largura &&
                dino.x + dino.largura > m.x &&
                dino.y < m.y + m.altura &&
                dino.y + dino.altura > m.y;
     });
+
+    const colideComCratera = crateras.some(c => {
+        const distX = dino.x + dino.largura / 2 - c.x;
+        const distY = dino.y + dino.altura / 2 - c.y;
+        const distancia = Math.sqrt(distX * distX + distY * distY);
+        return distancia < c.raio;
+    });
+
+    return colideComMeteoro || colideComCratera;
 }
 
 function loop(){
@@ -146,6 +185,9 @@ function loop(){
 
     desenhaMeteoros();
     atualizaMeteoros();
+
+    desenhaCrateras();
+    atualizaCrateras();
 
     desenhaDecoracoes();
     atualizaDecoracoes();
