@@ -1,3 +1,5 @@
+//dudu lindo
+
 const canvas = document.getElementById('jogo');
 const ctx = canvas.getContext('2d');
 
