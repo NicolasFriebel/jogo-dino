@@ -14,7 +14,7 @@ It's an allusion to surviving and thriving on the jungle that is the market
 
 1. Clone the repository:
 
-`git clone https://github.com/eduardogimenis/jogo-dino.git`
+`git clone https://github.com/NicolasFriebel/jogo-dino.git`
 
 2. Navigate to the project directory:
 
