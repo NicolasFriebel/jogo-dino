@@ -12,6 +12,6 @@ canvas {
     display: block;
     border-bottom: 2px solid #ccc;
     width: 100%;
-    max-width: 800px;
-    height: 600px; /* Increase this value for a taller play area */
+    max-width: 900px;
+    height: 700px; /* Increase this value for a taller play area */
 }

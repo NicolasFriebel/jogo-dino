@@ -66,12 +66,13 @@ export class Dino {
 
     // apply gravity modifiers
     if (this.vy > 0) {
-      // falling
-      this.vy += GRAVITY * (FALL_MULTIPLIER - 1);
+      // exponential fall
+      this.vy *= FALL_MULTIPLIER;
     } else if (this.vy < 0 && !(input.isDown('Space') || input.isDown('ArrowUp'))) {
       // short hop
       this.vy += GRAVITY * (LOW_JUMP_MULTIPLIER - 1);
     }
+    // apply base gravity
     this.vy += GRAVITY;
     this.y += this.vy;
 
@@ -92,7 +93,7 @@ export class Dino {
 export class Meteor {
   constructor(assets) {
     this.assets = assets;
-    const sizeOptions = [20, 20, 40, 60];
+    const sizeOptions = [20, 35, 40, 45, 60];
     this.size = sizeOptions[Math.floor(Math.random() * sizeOptions.length)];
     this.x = Math.random() * CANVAS_WIDTH * 1.1;
     this.y = -this.size;
@@ -109,7 +110,7 @@ export class Meteor {
         x: this.x,
         y: CANVAS_HEIGHT - GROUND_MARGIN,
         width: this.size * 1.5,
-        height: 12,
+        height: 16, // it was 12
         pontuado: false
       });
       return true; // removed
@@ -142,7 +143,8 @@ export class Decoration {
   }
 
   draw(ctx, groundY) {
-    ctx.fillStyle = this.type === 'grama' ? '#4caf50' : '#888';
+    // simple parallax shading: background (tras) lighter, foreground (frente) darker
+    ctx.fillStyle = this.depth === 'tras' ? '#ccc' : '#555';
     ctx.fillRect(this.x, groundY - this.height, this.width, this.height);
   }
 }
