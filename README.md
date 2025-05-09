@@ -14,11 +14,11 @@ It's an allusion to surviving and thriving on the jungle that is the market
 
 1. Clone the repository:
 
-`git clone https://github.com/eduardogimenis/evade-extinction.git`
+`git clone https://github.com/eduardogimenis/jogo-dino.git`
 
 2. Navigate to the project directory:
 
-`cd evade-extinction`
+`cd jogo-dino`
 
 3. Initiate a local server:
 
