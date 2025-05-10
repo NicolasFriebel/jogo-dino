@@ -1,12 +1,17 @@
-body {
+html, body {
     margin: 0;
     padding: 0;
+    overflow: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: #f7f7f7;
+    background-color: #d1d2cb;
 }
 canvas {
+    display: block;
     border-bottom: 2px solid #ccc;
+    width: 100%;
+    max-width: 900px;
+    height: 700px; /* Increase this value for a taller play area */
 }
